@@ -9,6 +9,7 @@ class Program
             Console.WriteLine("\nChoose task: \n");
             Console.WriteLine("1. Array");
             Console.WriteLine("2. Methods");
+            Console.WriteLine("3. Credit Card");
             Console.WriteLine("0. Exit");
             Console.Write("Your choice: ");
             string? input = Console.ReadLine();
@@ -27,6 +28,10 @@ class Program
                 else if (userChoice == 2)
                 {
                     MethodsTask.Menu.Run();
+                }
+                else if (userChoice == 3)
+                {
+                    CreditCardTask.Menu.Run();
                 }
                 else
                 {

@@ -64,6 +64,22 @@ class CreditCard
 {
     private string _pin;
     private int _balance;
+    private int _targetAmount;
+
+    public int TargetAmount
+    {
+        get { return _targetAmount; }
+        set
+        {
+            if (value <= 0)
+            {
+                throw new Exception("Target must be positive.");
+            }
+
+            _targetAmount = value;
+        }
+    }
+
     public int Id { get; }
     public string FullName { get; }
     public DateTime ExpirationDate { get; }
@@ -77,35 +93,45 @@ class CreditCard
     public event EventHandler<TargetAmountReachedEventArgs>? TargetAmountReached;
     public event EventHandler<PinChangedEventArgs>? PinChanged;
 
-    public CreditCard(int id, string fullName, DateTime expirationDate, string pin, int creditLimit, int balance)
+    public CreditCard(int id, string fullName, DateTime expirationDate, string pin, int creditLimit, int balance, int targetAmount)
     {
+        if (id <= 0)
+        {
+            throw new Exception("ID must be positive.");
+        }
+
+        if (string.IsNullOrWhiteSpace(fullName))
+        {
+            throw new Exception("Full name cannot be empty.");
+        }
+
+        if (expirationDate <= DateTime.Today)
+        {
+            throw new Exception("Expiration date must be in the future.");
+        }
+
+        if (!ValidatePin(pin))
+        {
+            throw new Exception("PIN must contain exactly 4 digits.");
+        }
+
+        if (creditLimit < 0)
+        {
+            throw new Exception("Credit limit cannot be negative.");
+        }
+
+        if (balance < -creditLimit)
+        {
+            throw new Exception("Balance cannot be less than credit limit.");
+        }
+
         Id = id;
         FullName = fullName;
         ExpirationDate = expirationDate;
         _pin = pin;
         CreditLimit = creditLimit;
         _balance = balance;
-    }
-
-    protected virtual void OnMoneyAdded(MoneyAddedEventArgs e)
-    {
-        MoneyAdded?.Invoke(this, e);
-    }
-    protected virtual void OnMoneySpent(MoneySpentEventArgs e)
-    {
-        MoneySpent?.Invoke(this, e);
-    }
-    protected virtual void OnCreditStarted(CreditStartedEventArgs e)
-    {
-        CreditStarted?.Invoke(this, e);
-    }
-    protected virtual void OnTargetAmountReached(TargetAmountReachedEventArgs e)
-    {
-        TargetAmountReached?.Invoke(this, e);
-    }
-    protected virtual void OnPinChanged(PinChangedEventArgs e)
-    {
-        PinChanged?.Invoke(this, e);
+        _targetAmount = targetAmount;
     }
 
     public void AddMoney(int amount)
@@ -119,7 +145,25 @@ class CreditCard
 
         _balance += amount;
 
+        if (Balance > TargetAmount)
+        {
+            OnTargetAmountReached(new TargetAmountReachedEventArgs (Balance, TargetAmount));
+        }
+
         OnMoneyAdded(new MoneyAddedEventArgs(amount, _balance));
+    }
+
+    private void CheckIfExpired()
+    {
+        if (ExpirationDate < DateTime.Today)
+        {
+            throw new Exception("Card is expired.");
+        }
+    }
+
+    protected virtual void OnMoneyAdded(MoneyAddedEventArgs e)
+    {
+        MoneyAdded?.Invoke(this, e);
     }
 
     public void SpendMoney(int amount)
@@ -135,17 +179,35 @@ class CreditCard
 
         if (amount > available)
         {
-            OnTargetAmountReached(new TargetAmountReachedEventArgs(amount, available));
+            throw new Exception("Not enough funds including credit limit.");
         }
 
         _balance -= amount;
 
+        if (_balance < 0)
+        {
+            int debt = -_balance;
+            int availableCredit = CreditLimit - debt;
+
+            OnCreditStarted(new CreditStartedEventArgs(debt, availableCredit));
+        }
+
         OnMoneySpent(new MoneySpentEventArgs(amount, _balance));
     }
 
-    public bool ValidatePin(string pin)
+    protected virtual void OnMoneySpent(MoneySpentEventArgs e)
     {
-        return !string.IsNullOrWhiteSpace(pin) && (pin.Length == 4) && pin.All(char.IsDigit);
+        MoneySpent?.Invoke(this, e);
+    }
+
+    protected virtual void OnTargetAmountReached(TargetAmountReachedEventArgs e)
+    {
+        TargetAmountReached?.Invoke(this, e);
+    }
+
+    protected virtual void OnCreditStarted(CreditStartedEventArgs e)
+    {
+        CreditStarted?.Invoke(this, e);
     }
 
     public void ChangePin(string oldPin, string newPin)
@@ -164,12 +226,24 @@ class CreditCard
 
         OnPinChanged(new PinChangedEventArgs(DateTime.Now));
     }
-
-    private void CheckIfExpired()
+    protected virtual void OnPinChanged(PinChangedEventArgs e)
     {
-        if (ExpirationDate < DateTime.Today)
-        {
-            throw new Exception("Card is expired.");
-        }
+        PinChanged?.Invoke(this, e);
+    }
+
+    public static bool ValidatePin(string pin)
+    {
+        return !string.IsNullOrWhiteSpace(pin) && (pin.Length == 4) && pin.All(char.IsDigit);
+    }
+
+    public string Output()
+    {
+        return $"\nID: {Id}" +
+            $"\nFull Name: {FullName}" +
+            $"\nExpiration Date: {ExpirationDate}" +
+            $"\nPIN: {_pin}" +
+            $"\nCredit Limit: {CreditLimit}" +
+            $"\nBalance: {Balance}" +
+            $"\nTarget Amount: {TargetAmount}";
     }
 }
