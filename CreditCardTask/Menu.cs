@@ -159,7 +159,7 @@ class Menu
                                     }
                                     else
                                     {
-                                        Console.WriteLine("\nInvalid choice! Enter a number between !");
+                                        Console.WriteLine("\nInvalid choice! Enter a number between 0-4!");
                                     }
                                 }
                                 else
