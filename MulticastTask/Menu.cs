@@ -1,5 +1,6 @@
-﻿namespace MainProgram.StringTask;
+﻿using System.ComponentModel.Design;
 
+namespace MainProgram.MulticastTask;
 class Menu
 {
     static string StringInput(string prompt)
@@ -17,11 +18,11 @@ class Menu
         }
     }
 
+
     public static void Run()
     {
-        StringOperations stringOperations = StringDelegate.CountVowels;
-        stringOperations += StringDelegate.CountConsonants;
-        stringOperations += StringDelegate.GetStringLength;
+        MulticastDelegate multicast = Multicast.PrintInput;
+        multicast += Multicast.WriteToFile;
 
         while (true)
         {
@@ -45,7 +46,7 @@ class Menu
                     {
                         while (true)
                         {
-                            Console.WriteLine("\n1. Do string operations (count vowels, consonants, get length)");
+                            Console.WriteLine("\n1. Do string operations (print input, write to file)");
                             Console.WriteLine("0. Exit");
                             Console.Write("Your choice: ");
                             string? textInput = Console.ReadLine();
@@ -59,7 +60,7 @@ class Menu
                                 }
                                 else if (textChoice == 1)
                                 {
-                                    stringOperations(text);
+                                    multicast(text);
                                 }
                                 else
                                 {
@@ -75,7 +76,7 @@ class Menu
                 }
                 else
                 {
-                    Console.WriteLine("\nInvalid choice! Enter a number between 0-1!");
+                    Console.WriteLine("\nInvalid choice! Enter a nmber between 0-1!");
                 }
             }
             else

@@ -11,6 +11,7 @@ class Program
             Console.WriteLine("2. Methods");
             Console.WriteLine("3. Credit Card");
             Console.WriteLine("4. String");
+            Console.WriteLine("5. Multicast");
             Console.WriteLine("0. Exit");
             Console.Write("Your choice: ");
             string? input = Console.ReadLine();
@@ -37,6 +38,14 @@ class Program
                 else if (userChoice == 4)
                 {
                     StringTask.Menu.Run();
+                }
+                else if (userChoice == 5)
+                {
+                    MulticastTask.Menu.Run();
+                }
+                else if (userChoice == 6)
+                {
+                    ChainDelegateTask.Menu.Run();
                 }
                 else
                 {

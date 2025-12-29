@@ -2,7 +2,7 @@
 
 public delegate void StringOperations(string input);
 
-class String
+class StringDelegate
 {
     public static void CountVowels(string input)
     {
